@@ -1,3 +1,4 @@
+import os
 import asyncio
 from yt_dlp import YoutubeDL
 
@@ -11,6 +12,14 @@ class Song:
         self.thumbnail = None
 
     async def create(self):
+        # 從環境變數中取得 Cookie 內容
+        cookies_content = os.environ.get("YT_COOKIES")
+
+        # 如果環境變數存在，寫入 cookies.txt
+        if cookies_content:
+            with open('cookies.txt', 'w') as f:
+                f.write(cookies_content)
+
         ydl_opts = {
             'format': 'bestaudio/best',
             'extractaudio': True,
@@ -30,6 +39,7 @@ class Song:
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
+            'cookiefile': 'cookies.txt'
         }
         
         try:
