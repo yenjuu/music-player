@@ -1,6 +1,9 @@
 import os
 import asyncio
 from yt_dlp import YoutubeDL
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import re
 
 # Description: 用於處理音樂資訊和下載
 class Song:
@@ -10,7 +13,23 @@ class Song:
         self.title = None
         self.duration = None
         self.thumbnail = None
+        self.sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
+            client_id=os.getenv("SPOTIFY_CLIENT_ID"),
+            client_secret=os.getenv("SPOTIFY_CLIENT_SECRET")
+        ))
 
+    def is_spotify_url(self, url):
+        return 'spotify.com' in url
+    
+    async def get_spotify_track_info(self, url):
+        # 從 URL 提取 track ID
+        track_id = url.split('/')[-1].split('?')[0]
+        track = self.sp.track(track_id)
+        # 創建搜索查詢
+        search_query = f"{track['artists'][0]['name']} - {track['name']}"
+        return search_query
+
+    
     async def create(self):
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -30,11 +49,13 @@ class Song:
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
-            }],
-            'cookiefile': '/etc/secrets/cookies.txt'
+            }]
+            # 'cookiefile': '/etc/secrets/cookies.txt'
         }
         
         try:
+            if self.is_spotify_url(self.url):
+                self.url = await self.get_spotify_track_info(self.url)
             with YoutubeDL(ydl_opts) as ydl:
                 try:
                     print(f"正在處理URL: {self.url}")  # 偵錯用

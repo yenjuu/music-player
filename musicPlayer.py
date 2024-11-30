@@ -15,7 +15,7 @@ class MusicPlayer:
         self.queue = asyncio.Queue()  # 創建一個異步隊列來存儲音樂
         self.next = asyncio.Event()  # 用於控制下一首歌曲的播放
 
-        self.volume = 0.3  # 設置默認音量
+        self.volume = 0.2  # 設置默認音量
         self.current = None  # 當前播放的歌曲
         self.playing = False  # 是否正在播放
         self.paused = False  # 是否暫停
@@ -53,7 +53,7 @@ class MusicPlayer:
                         volume=self.volume
                     )
                 except Exception as e:
-                    await self.channel.send(f'創建音頻源時發生錯誤: {str(e)}')
+                    await self.channel.send(f'創建音源時發生錯誤: {str(e)}')
                     continue
 
                 self.playing = True
