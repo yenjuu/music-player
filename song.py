@@ -8,12 +8,11 @@ import sys
 import io
 import logging
 
-# 設置日誌記錄
+# 設置日誌記錄（只使用 StreamHandler）
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('log/bot.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
