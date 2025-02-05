@@ -55,20 +55,12 @@ if __name__ == "__main__":
     cookies = os.getenv('COOKIES')
     if cookies:
         try:
-            # 使用 'latin1' 編碼處理 cookies
-            cookies_data = base64.b64decode(cookies).decode('latin1')
+            cookies_data = base64.b64decode(cookies).decode('utf-8')
             with open('cookies.txt', 'w', encoding='utf-8', newline='\n') as f:
                 f.write(cookies_data)
             logger.info("成功載入 cookies")
         except Exception as e:
             logger.error(f"載入 cookies 時發生錯誤: {str(e)}")
-            # 如果出錯，嘗試直接寫入
-            try:
-                with open('cookies.txt', 'wb') as f:
-                    f.write(base64.b64decode(cookies))
-                logger.info("使用二進制模式成功載入 cookies")
-            except Exception as e2:
-                logger.error(f"二進制載入 cookies 時發生錯誤: {str(e2)}")
 
     # 啟動 web server 來保持活躍
     keep_alive()
