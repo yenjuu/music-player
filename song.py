@@ -80,7 +80,7 @@ class Song:
             'logtostderr': False,
             'quiet': True,
             'no_warnings': True,
-            'default_search': 'auto',
+            'default_search': 'ytsearch',
             'source_address': '0.0.0.0',
             'cookiefile': 'cookies.txt',
             'http_headers': {
@@ -97,7 +97,7 @@ class Song:
                 }
             },
             'socket_timeout': 30,
-            'extract_flat': True,
+            'extract_flat': False,
             'youtube_include_dash_manifest': False,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
@@ -110,6 +110,9 @@ class Song:
         try:
             if self.is_spotify_url(self.url):
                 self.url = await self.get_spotify_track_info(self.url)
+            
+            if not re.match(r'https?://', self.url):
+                self.url = f'ytsearch:{self.url}'
             
             info = await asyncio.get_event_loop().run_in_executor(
                 None, 
