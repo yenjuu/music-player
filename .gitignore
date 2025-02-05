@@ -272,6 +272,7 @@ venv/
 .env
 .env.cookies
 .cache
+cookies.txt
 
 # 其他
 etc/secrets/

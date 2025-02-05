@@ -6,6 +6,7 @@ from keepAlive import keep_alive
 from dotenv import load_dotenv
 import subprocess
 import logging
+import base64
 
 # 設置日誌
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +51,18 @@ class MusicBot(commands.Bot):
 bot = MusicBot()
 
 if __name__ == "__main__":
+    # 處理 cookies
+    cookies = os.getenv('COOKIES')
+    if cookies:
+        try:
+            # 解碼 base64 cookies 並寫入文件
+            cookies_data = base64.b64decode(cookies).decode('utf-8')
+            with open('cookies.txt', 'w', encoding='utf-8') as f:
+                f.write(cookies_data)
+            logger.info("成功載入 cookies")
+        except Exception as e:
+            logger.error(f"載入 cookies 時發生錯誤: {str(e)}")
+
     # 啟動 web server 來保持活躍
     keep_alive()
     
