@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dc-music
+    runtime: python
+    buildCommand: bash ./build.sh
+    startCommand: python main.py
+    envVars:
+      - key: PORT
+        value: 8080
+    healthCheckPath: /health
+    plan: free

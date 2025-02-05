@@ -49,15 +49,14 @@ class MusicBot(commands.Bot):
 
 bot = MusicBot()
 
-# 啟動 KeepAlive 服務
-keep_alive()
-
 if __name__ == "__main__":
+    # 啟動 web server 來保持活躍
+    keep_alive()
+    
     if not check_ffmpeg():
         logger.error("請先安裝 FFmpeg！")
         exit(1)
     
-    # 在這裡替換成你的機器人 Token
     TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
         raise ValueError("No TOKEN found in environment variables. Please check your .env file.")
