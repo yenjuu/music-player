@@ -41,6 +41,32 @@ class Song:
         search_query = f"{track['artists'][0]['name']} - {track['name']}"
         return search_query
 
+    async def _get_best_audio_url(self, formats):
+        """Extract best audio URL from formats."""
+        audio_formats = [
+            f for f in formats 
+            if f.get('acodec') != 'none' and f.get('vcodec') == 'none'
+        ]
+        if not audio_formats:
+            return formats[0]['url']
+        best_audio = max(
+            audio_formats,
+            key=lambda f: f.get('abr', 0) if f.get('abr') else 0
+        )
+        return best_audio['url']
+
+    async def _extract_with_retry(self, ydl, retries=3):
+        """Extract info with retry mechanism."""
+        for attempt in range(retries):
+            try:
+                return ydl.extract_info(self.url, download=False)
+            except Exception as e:
+                if attempt < retries - 1:
+                    logger.warning(f"嘗試 {attempt + 1}/{retries} 失敗: {str(e)}")
+                    await asyncio.sleep(1)
+                    continue
+                raise
+
     async def create(self):
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -67,8 +93,12 @@ class Song:
                 'youtube': {
                     'player_client': ['android', 'web'],
                     'player_skip': ['webpage', 'configs', 'js'],
+                    'max_comments': 0,
                 }
             },
+            'socket_timeout': 30,
+            'extract_flat': True,
+            'youtube_include_dash_manifest': False,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -81,19 +111,9 @@ class Song:
             if self.is_spotify_url(self.url):
                 self.url = await self.get_spotify_track_info(self.url)
             
-            async def extract_info():
-                with YoutubeDL(ydl_opts) as ydl:
-                    try:
-                        logger.info(f"正在處理URL: {self.url}")
-                        info = ydl.extract_info(self.url, download=False)
-                        return info
-                    except Exception as e:
-                        logger.error(f"YDL錯誤: {str(e)}")
-                        raise
-
             info = await asyncio.get_event_loop().run_in_executor(
                 None, 
-                lambda: asyncio.run(extract_info())
+                lambda: asyncio.run(self._extract_with_retry(YoutubeDL(ydl_opts)))
             )
             
             if not info:
@@ -105,22 +125,7 @@ class Song:
             self.title = info.get('title', 'Unknown title')
             logger.info(f"成功獲取影片資訊: {self.title}")
             
-            self.url = info.get('url')
-            if not self.url:
-                formats = info.get('formats', [])
-                audio_formats = [
-                    f for f in formats 
-                    if f.get('acodec') != 'none' and f.get('vcodec') == 'none'
-                ]
-                if audio_formats:
-                    best_audio = max(
-                        audio_formats,
-                        key=lambda f: f.get('abr', 0) if f.get('abr') else 0
-                    )
-                    self.url = best_audio['url']
-                else:
-                    self.url = formats[0]['url']
-            
+            self.url = info.get('url') or await self._get_best_audio_url(info.get('formats', []))
             self.duration = info.get('duration', 0)
             self.thumbnail = info.get('thumbnail')
             
