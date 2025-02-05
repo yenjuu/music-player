@@ -1,7 +1,15 @@
 {
   "build": {
+    "env": {
+      "DEBIAN_FRONTEND": "noninteractive"
+    },
     "commands": [
-      "apt-get update && apt-get install -y ffmpeg"
+      "apt-get update",
+      "apt-get install -y ffmpeg",
+      "pip install -r requirements.txt"
     ]
+  },
+  "run": {
+    "cmd": "python main.py"
   }
 } 
