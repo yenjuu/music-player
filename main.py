@@ -4,6 +4,22 @@ from discord.ext import commands
 from playerCmd import PlayerCmd
 from keepAlive import keep_alive
 from dotenv import load_dotenv
+import subprocess
+import logging
+
+# 設置日誌
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# 檢查 FFmpeg 是否安裝
+def check_ffmpeg():
+    try:
+        subprocess.run(['ffmpeg', '-version'], capture_output=True)
+        logger.info("FFmpeg 已正確安裝")
+        return True
+    except FileNotFoundError:
+        logger.error("FFmpeg 未安裝！")
+        return False
 
 # 確保加載 .env 文件
 load_dotenv()
@@ -36,9 +52,14 @@ bot = MusicBot()
 # 啟動 KeepAlive 服務
 keep_alive()
 
-# 在這裡替換成你的機器人 Token
-TOKEN = os.getenv("TOKEN")
-if TOKEN is None:
-    raise ValueError("No TOKEN found in environment variables. Please check your .env file.")
+if __name__ == "__main__":
+    if not check_ffmpeg():
+        logger.error("請先安裝 FFmpeg！")
+        exit(1)
+    
+    # 在這裡替換成你的機器人 Token
+    TOKEN = os.getenv("TOKEN")
+    if TOKEN is None:
+        raise ValueError("No TOKEN found in environment variables. Please check your .env file.")
 
-bot.run(TOKEN)
+    bot.run(TOKEN)
