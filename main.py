@@ -56,7 +56,7 @@ async def on_wavelink_track_end(payload: wavelink.TrackEndEventPayload):
         
         # 可以在此處發送訊息到文字頻道
         if hasattr(player, 'text_channel') and player.text_channel:
-            await player.text_channel.send(f"🎵 自動播放下一首: **{next_track.title}**")
+            await player.text_channel.send(f"🎵 自動播放下一首: **{next_track.author} - {next_track.title}**")
 
 
 # --- 音樂指令 ---
@@ -90,7 +90,7 @@ async def play_command(ctx: commands.Context, *, search: str):
     else:
         track = tracks[0]
         await player.queue.put_wait(track)
-        await ctx.send(f"✅ 已將 **{track.title}** 加入隊列。" )
+        await ctx.send(f"✅ 已將 **{track.author} - {track.title}** 加入隊列。" )
 
     if not player.playing:
         await player.play(player.queue.get())
@@ -135,6 +135,21 @@ async def volume_command(ctx: commands.Context, value: int):
         await player.set_volume(value)
         await ctx.send(f"🔊 音量已設為 {value}%")
 
+@bot.command(name='nowplay', aliases=['np'])
+async def nowplay_command(ctx: commands.Context):
+    """顯示目前正在播放的歌曲。"""
+    player = cast(wavelink.Player, ctx.voice_client)
+    if not player or not player.playing:
+        return await ctx.send("目前沒有正在播放的歌曲。")
+
+    track = player.current
+    embed = discord.Embed(title="正在播放 🎵", description=f"**{track.author} - {track.title}**", color=0x2b2d31)
+    
+    if track.artwork:
+        embed.set_thumbnail(url=track.artwork)
+
+    await ctx.send(embed=embed)
+
 @bot.command(name='queue', aliases=['q'])
 async def queue_command(ctx: commands.Context):
     """顯示目前的播放隊列。"""
@@ -144,7 +159,7 @@ async def queue_command(ctx: commands.Context):
 
     queue_text = ""
     for i, track in enumerate(player.queue, start=1):
-        queue_text += f"{i}. {track.title}\n"
+        queue_text += f"{i}. {track.author} - {track.title}\n"
         if i >= 10: # 最多顯示 10 首
             queue_text += f"...還有 {len(player.queue) - 10} 首"
             break
@@ -178,6 +193,7 @@ async def help_command(ctx: commands.Context):
             "`!pause`  - 暫停播放\n"
             "`!resume` - 繼續播放\n"
             "`!skip`   - 跳過目前歌曲\n"
+            "`!nowplay` (縮寫: `!np`) - 顯示目前播放歌曲\n"
             "`!volume <0-1000>` - 調整音量"
         ),
         inline=False
@@ -190,7 +206,12 @@ async def help_command(ctx: commands.Context):
             "   └ 查看目前的播放隊列。"
         ),
         inline=False
-    )    
+    )
+    embed.add_field(
+        name="⚠️ 注意事項",
+        value="目前暫不支援 Spotify 連結播放，請使用 YouTube 搜尋或連結。",
+        inline=False
+    )
     await ctx.send(embed=embed)
 
 
