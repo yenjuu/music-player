@@ -1,0 +1,58 @@
+server: # REST and WS server
+  port: 2333
+  address: 0.0.0.0
+lavalink:
+  plugins:
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
+      repository: "https://maven.topi.wtf/releases"
+      snapshot: false
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.0"
+      snapshot: false
+  server:
+    password: "youshallnotpass" # 連線到 Lavalink 的密碼，請在您的 Bot 設定中保持一致
+    sources:
+      youtube: false  # 關閉內建 YouTube，由 LavaSrc 接管
+      soundcloud: true 
+    bufferDurationMs: 400
+    youtubePlaylistLoadLimit: 6 
+    playerUpdateInterval: 5
+    youtubeSearchEnabled: true
+    soundcloudSearchEnabled: true
+
+logging:
+  file:
+    max-history: 30
+    max-size: 1GB
+  path: ./logs/
+  level:
+    root: INFO
+    lavalink: INFO
+
+plugins:
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    cookies: "../cookies.txt" # 指向根目錄下的 cookies.txt
+    clients:
+      - TVHTML5_SIMPLY_EMBEDDED_PLAYER
+      - ANDROID_VR
+      - MUSIC
+      - ANDROID_MUSIC
+      - WEB_REMIX
+      - WEB
+  lavasrc:
+    providers:
+      # %ISRC% 用於從 Spotify/Apple Music 等平台獲取 ISRC 後在 YouTube 上進行精準搜尋
+      - "ytsearch:\"%ISRC%\"" 
+      # %QUERY% 是備用選項，用於一般關鍵字搜尋
+      - "ytsearch:%QUERY%"
+    sources:
+      spotify: true
+      applemusic: true
+      deezer: false
+      yandexmusic: false
+      youtube: true # 讓 LavaSrc 接管 YouTube 搜尋
+    youtube:
+      countryCode: "US"  # 改為 US 以增加解析相容性
