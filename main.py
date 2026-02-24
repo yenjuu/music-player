@@ -48,6 +48,8 @@ async def on_wavelink_node_ready(payload: wavelink.NodeReadyEventPayload):
 async def on_wavelink_track_end(payload: wavelink.TrackEndEventPayload):
     """當曲目結束時，自動播放佇列中的下一首。"""
     player = payload.player
+    if not player or not hasattr(player, 'queue'):
+        return
     if not player.queue.is_empty:
         next_track = player.queue.get()
         await player.play(next_track)
